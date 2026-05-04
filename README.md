@@ -1,72 +1,237 @@
-# Auc-consistency-analysis-banking
-Financial data consistency analysis for Assets Under Custody (AUC), including anomaly detection, data reconciliation, and trend evaluation using Python.
+# AUC Consistency Analysis in Banking
 
-# Context
+##  Overview
 
-Financial institutions rely on consistency across different systems (custodial, accounting, and transactional) to ensure the accurate calculation of assets under custody (AUC). Discrepancies between these sources can lead to operational errors, distortions in financial reports, and misguided decisions.
-This project simulates a real-world scenario of data inconsistency and proposes a structured approach to:
+This project analyzes inconsistencies across financial data sources to build a reliable **Assets Under Custody (AUC)** metric.
 
- - Identify anomalies between different data sources
- - Develop metrics for consistency validation
- - Analyze the evolution of assets under custody
- - Compare performance with (simulated) competitor data
+In real-world financial systems, discrepancies between custody, accounting, and transactional data can lead to inaccurate reporting and poor decision-making. This project simulates such a scenario and proposes a structured approach to detect anomalies, validate data consistency,  analyze asset evolution and compare with simulated datas competitor.
 
-# Data Generation and SQL layer
+---
 
-The dataset used in this project was synthetically generated to simulate a financial environment. SQL scripts were created to model transactional, accounting, and custody data. These scripts were executed in a SQL environment to generate structured tables, which were then exported as CSV files and analyzed using Python.
+##  Objectives
 
-# Objective
+* Identify inconsistencies between custody and accounting balances
+* Detect anomalous transaction patterns
+* Build a robust proxy for AUC in the presence of data issues
+* Analyze monthly asset evolution
+* Compare growth trends with a simulated competitor
 
- - Detect inconsistencies between custody balances, book balances, and transaction activity
- - Classify anomalies based on business rules
- - Construct an adjusted AUC proxy for temporal analysis
- - Evaluate monthly changes in AUC
- - Compare trends with competitors (on a normalized basis)
+---
 
-# Methodology
-1. Exploratory Data Analysis (EDA)
-An initial analysis was conducted to understand:
-The distribution of balances over time
-The presence of negative values
-Discrepancies between sources (custodial vs. accounting)
-The following were used:
-Scatter plots
-Box plots
-Time series
+##  Data Source
 
-## Data Preparation
-Sorting by client and date
-Calculation of daily percentage change (pct_change) for:
- - custodial balance
- - accounting balance
-PS: The percentage change was used only as an auxiliary indicator, as it can introduce distortions at values close to zero.
+The dataset was **synthetically generated using SQL scripts** to simulate a financial environment, including:
 
-## Consistency Metrics
-### Comparison between sources
+* Transaction data (cash inflows and outflows)
+* Custody balances (assets held)
+* Accounting balances
 
-Evaluation of the difference between the accounting balance and the custody balance Using of a combined threshold:
-difference > 10%
-absolute difference > 100
+The workflow follows:
 
-### Flow vs. Stock Ratio
-Comparison between today’s transactions and yesterday’s balance in order to verify whether the balance justifies the transaction volume
+**SQL → CSV → Python analysis**
 
-## Classification of Anomalies
-Three main categories were defined:
+AI-assisted tools were used to accelerate SQL generation, while all modeling logic and validation rules were manually defined.
 
-### System Discrepancy
-Opposing signals between custody and accounting or Difference > 10% and > 100 (absolute value) indicating:
+---
 
-integration failure
-calculation inconsistency
+##  Methodology
 
-### Transaction Anomaly
-Transaction volume above the 95th percentile excluding cases with a very low base indicating:
-atypical behavior
-possible error or significant event
+### 1. Exploratory Data Analysis
 
-### Low Base Effect
-Transactions associated with very low balances Values below the 5th percentile indicating:
-mathematical distortion
-not necessarily an actual error
+Initial analysis was performed to understand:
 
+* Data distribution
+* Presence of negative values
+* Divergence between custody and accounting balances
+
+---
+
+### 2. Feature Engineering
+
+New metrics were created to support anomaly detection:
+
+* Daily percentage variation of balances
+* Ratio between transaction volume and prior balance
+* Absolute and relative differences between sources
+
+---
+
+### 3. Anomaly Detection
+
+Anomalies were classified based on three main criteria:
+
+* **System Inconsistency**
+
+  * Custody and accounting balances have opposite signs
+  * OR difference exceeds 10% and absolute threshold
+
+* **Movement Anomaly**
+
+  * Transaction volume above the 95th percentile
+  * Indicates unusual activity relative to balance
+
+* **Low Base Effect**
+
+  * Distortions caused by very small balance values
+  * Identified using the 5th percentile threshold
+
+---
+
+##  AUC Construction
+
+An adjusted AUC metric was created using the following logic:
+
+1. Prioritize custody balance when consistent
+2. Use accounting balance when custody is unreliable
+3. Exclude cases where both sources are inconsistent
+
+> Transaction values were **not used as AUC proxies**, as they represent flow rather than stock.
+
+---
+
+##  Analysis
+
+### Monthly AUC Evolution
+
+![AUC Evolution](images/auc_evolution.png)
+
+The analysis shows variations over time, including abrupt changes that may reflect data inconsistencies or shifts in asset allocation.
+In addition to tracking the month-over-month growth of assets under custody, it is possible to compare this growth with that of competitors in order to identify trends and assess the institution’s market position
+
+---
+
+### Anomaly Distribution
+
+![Anomaly Distribution](images/anomaly_distribution.png)
+
+* ~27% of records contain anomalies
+* Majority are system inconsistencies
+* Indicates potential integration issues between data sources
+
+---
+
+### Asset Composition
+
+![Asset Composition](images/asset_composition.png)
+
+The composition analysis highlights how different asset classes contribute to total AUC over time, revealing shifts in portfolio structure.
+
+---
+
+### Comparison with Competitor
+
+A comparison was performed using simulated public data.
+
+Due to the absence of structural data (e.g., number of clients), values were **normalized** to allow comparison of growth trends rather than absolute values.
+
+---
+
+##  Key Insights
+
+* High level of inconsistency between custody and accounting systems
+* Accounting balance shows greater volatility
+* Significant presence of anomalies (~27% of records)
+* Data quality issues directly impact AUC reliability
+* Asset composition varies significantly over time
+
+---
+
+##  Limitations
+
+* Synthetic dataset (not real financial data)
+* High proportion of inconsistent records
+* Simplified AUC reconstruction logic
+* Competitor comparison not normalized by client base
+* Absence of market pricing (no mark-to-market valuation)
+
+---
+
+##  How to Run
+
+### 1. Generate Data (SQL)
+
+Execute the SQL scripts located in:
+
+```bash
+sql/
+```
+
+* `01_create_tables.sql`
+* `02_generate_data.sql`
+* `03_queries_analysis.sql`
+
+---
+
+### 2. Export Data
+
+Export the generated tables to CSV format.
+
+---
+
+### 3. Run Analysis
+
+Open the notebook:
+
+```bash
+notebooks/auc_analysis.ipynb
+```
+
+Run all cells to reproduce the analysis.
+
+---
+
+### 4. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+##  Technologies Used
+
+* Python
+* Pandas
+* NumPy
+* Plotly
+* SQL
+
+---
+
+##  Project Structure
+
+```plaintext
+auc-consistency-analysis-banking/
+│
+├── README.md
+├── requirements.txt
+│
+├── notebooks/
+│   └── auc_analysis.ipynb
+│
+├── sql/
+│   ├── 01_create_tables.sql
+│   ├── 02_generate_data.sql
+│   ├── 03_queries_analysis.sql
+│
+├── images/
+│   ├── auc_evolution.png
+│   ├── anomaly_distribution.png
+│   └── asset_composition.png
+```
+
+---
+
+##  Conclusion
+
+This project demonstrates how to handle inconsistent financial data and build meaningful analytical insights despite data quality challenges.
+
+The approach emphasizes:
+
+* Data validation
+* Clear anomaly definition
+* Business-oriented interpretation
+
+Ultimately, reliable financial analysis depends not only on models, but on the **quality and consistency of underlying data**.
+
+---
